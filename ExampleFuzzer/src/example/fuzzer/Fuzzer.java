@@ -26,7 +26,7 @@ public class Fuzzer {
 	public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		WebClient webClient = new WebClient();
 		webClient.setJavaScriptEnabled(true);
-		//discoverLinks(webClient);
+		//discoverLinks(webClient, "http://localhost:8080/bodgeit");
 		authenticate(webClient);
 		//doFormPost(webClient);
 		webClient.closeAllWindows();
@@ -60,13 +60,15 @@ public class Fuzzer {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	private static void discoverLinks(WebClient webClient) throws IOException, MalformedURLException {
-		HtmlPage page = webClient.getPage("http://localhost:8080/bodgeit");
+	private static List<HtmlAnchor>discoverLinks(WebClient webClient, String URL) throws IOException, MalformedURLException {
+		HtmlPage page = webClient.getPage(URL);
 		List<HtmlAnchor> links = page.getAnchors();
 		for (HtmlAnchor link : links) {
 			System.out.println("Link discovered: " + link.asText() + " @URL=" + link.getHrefAttribute());
 		}
+		return links;
 	}
+
 
 	/**
 	 * This code is for demonstrating techniques for submitting an HTML form. Fuzzer code would need to be
