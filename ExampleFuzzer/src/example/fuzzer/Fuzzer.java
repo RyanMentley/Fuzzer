@@ -40,8 +40,8 @@ public class Fuzzer {
 		
 		HtmlTextInput username =  form.getInputByName("username");
 		HtmlPasswordInput password = form.getInputByName("password");
-		username.setValueAttribute("Fuzzer");
-		password.setValueAttribute("testPassword");
+		username.setValueAttribute("admin");
+		password.setValueAttribute("Lorax");
 		
 		HtmlSubmitInput submit = form.getInputByValue("Login");
 		
