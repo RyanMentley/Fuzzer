@@ -16,7 +16,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
 
 public class Fuzzer {
 
-	private static String targetURL = "http://localhost:8080/bodgeit/";
+	private static String targetURL = "http://apps-staging.rit.edu/cast/eave/";
 	private static String targetFileExtension = ".jsp";
 	private static final boolean pageDiscovery = true;
 	private static final boolean pageGuessing = true;
@@ -34,8 +34,8 @@ public class Fuzzer {
 	/**
 	 * MAthod that provides a working username and passowrd to simulate logging into a syatem
 	 */
-	public static void authenticate(WebClient client)throws IOException, MalformedURLException {
-		HtmlPage page = client.getPage("http://apps-staging.rit.edu/cast/eave/");
+	public static HtmlPage authenticate(WebClient client)throws IOException, MalformedURLException {
+		HtmlPage page = client.getPage(targetURL);
 		HtmlForm form = page.getForms().get(0);
 		
 		HtmlTextInput username =  form.getInputByName("username");
@@ -49,10 +49,18 @@ public class Fuzzer {
 		
 		System.out.println("Post login page name: "+ post_login.asText());
 	
+		return post_login;
 		/*List<HtmlForm> forms = page.getForms();
 		for(HtmlForm form : forms){
 			System.out.println("Form: "+form.asText() + "\n");
 		}*/
+	}
+	private static void postFormsAndParams(HtmlPage page)throws IOException, MalformedURLException{
+		List<HtmlForm> forms = page.getForms();
+		for(HtmlForm form : forms){
+			System.out.println(form.getNameAttribute());
+			//List<HtmlInput> inputs = form.getElementsByTagName(""); //Unfinished
+		}
 	}
 	/**
 	 * This code is for showing how you can get all the links on a given page, and visit a given URL
@@ -60,7 +68,7 @@ public class Fuzzer {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	private static List<HtmlAnchor>discoverLinks(WebClient webClient, String URL) throws IOException, MalformedURLException {
+	private static List<HtmlAnchor> discoverLinks(WebClient webClient, String URL) throws IOException, MalformedURLException {
 		HtmlPage page = webClient.getPage(URL);
 		List<HtmlAnchor> links = page.getAnchors();
 		for (HtmlAnchor link : links) {
