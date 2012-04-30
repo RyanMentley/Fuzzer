@@ -24,6 +24,8 @@ public class Fuzzer {
 
 	private static String targetURL = "http://apps-staging.rit.edu/cast/eave/";
 	private static String targetFileExtension = ".jsp";
+	private static final String testUsername = "Fuzzer";
+	private static final String testPassword = "Test";
 	private static final boolean pageDiscovery = true;
 	private static final boolean pageGuessing = true;
 	private static final boolean completeness = false;  //Random = false, Full = True;
@@ -38,8 +40,8 @@ public class Fuzzer {
 	public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		WebClient webClient = new WebClient();
 		webClient.setJavaScriptEnabled(true);
-		//discoverLinks(webClient, "http://localhost:8080/bodgeit");
-		authenticate(webClient);
+		HtmlPage post_login = authenticate(webClient);
+		discoverLinks(webClient, null, post_login);
 		//doFormPost(webClient);
 		webClient.closeAllWindows();
 	}
@@ -92,8 +94,8 @@ public class Fuzzer {
 		
 		HtmlTextInput username =  form.getInputByName("username");
 		HtmlPasswordInput password = form.getInputByName("password");
-		username.setValueAttribute("Fuzzer");
-		password.setValueAttribute("testPassword");
+		username.setValueAttribute(testUsername);
+		password.setValueAttribute(testPassword);
 		
 		HtmlSubmitInput submit = form.getInputByValue("Login");
 		
@@ -120,8 +122,13 @@ public class Fuzzer {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	private static List<HtmlAnchor> discoverLinks(WebClient webClient, String URL) throws IOException, MalformedURLException {
-		HtmlPage page = webClient.getPage(URL);
+	private static List<HtmlAnchor> discoverLinks(WebClient webClient, String URL, HtmlPage postLogin) throws IOException, MalformedURLException {
+		HtmlPage page = null;
+		if(URL != null){
+			page = webClient.getPage(URL);
+		}else{
+			page= postLogin;
+		}
 		List<HtmlAnchor> links = page.getAnchors();
 		for (HtmlAnchor link : links) {
 			System.out.println("Link discovered: " + link.asText() + " @URL=" + link.getHrefAttribute());
