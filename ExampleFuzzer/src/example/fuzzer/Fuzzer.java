@@ -1,7 +1,13 @@
 package example.fuzzer;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
@@ -9,10 +15,10 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
-import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
-import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
 import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
+import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 
 public class Fuzzer {
 
@@ -23,6 +29,12 @@ public class Fuzzer {
 	private static final boolean completeness = false;  //Random = false, Full = True;
 	private static final boolean passwordguessing = false;
 	
+	private static final String XSS_VECTORS_FILENAME = "xssvectors.txt";
+	private static final String SQLI_VECTORS_FILENAME = "sqlivectors.txt";
+	
+	private static List<String> xssVectors = null;
+	private static List<String> sqliVectors = null;
+	
 	public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		WebClient webClient = new WebClient();
 		webClient.setJavaScriptEnabled(true);
@@ -30,6 +42,46 @@ public class Fuzzer {
 		authenticate(webClient);
 		//doFormPost(webClient);
 		webClient.closeAllWindows();
+	}
+	
+	private static List<String> loadVectorsFromFile(String filename) {
+		FileInputStream fstream;
+		try {
+			fstream = new FileInputStream(filename);
+		} catch (FileNotFoundException e) {
+			System.err.println("Ya dun goofed, that file doesn't exist.");
+			e.printStackTrace();
+			System.exit(1);
+			return null;
+		}
+		DataInputStream in = new DataInputStream(fstream);
+		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		LinkedList<String> list = new LinkedList<String>();
+		try {
+			String line = br.readLine();
+			while (line != null) {
+				list.add(line);
+				line = br.readLine();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			// Do nothing, just print the error and return whatever we have so far 
+		}
+		return list;
+	}
+	
+	private static List<String> getXssVectors() {
+		if (xssVectors != null) {
+			xssVectors = loadVectorsFromFile(XSS_VECTORS_FILENAME);
+		}
+		return xssVectors;
+	}
+	
+	private static List<String> getSqliVectors() {
+		if (sqliVectors != null) {
+			sqliVectors = loadVectorsFromFile(SQLI_VECTORS_FILENAME);
+		}
+		return sqliVectors;
 	}
 	/**
 	 * MAthod that provides a working username and passowrd to simulate logging into a syatem
