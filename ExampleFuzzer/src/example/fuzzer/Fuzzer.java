@@ -16,6 +16,7 @@ import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -87,6 +88,34 @@ public class Fuzzer {
 			sqliVectors = loadVectorsFromFile(SQLI_VECTORS_FILENAME);
 		}
 		return sqliVectors;
+	}
+	
+	/**
+	 * Adds all the children of elem to list
+	 * @param elem
+	 * @param list
+	 */
+	public static void getChildren (HtmlElement elem, List<HtmlElement> list) {
+		for (HtmlElement child :elem.getChildElements()) {
+			System.out.println(child.toString());
+			list.add(child);
+			getChildren(child, list);
+		}
+	}
+	
+	/**
+	 * Adds all the children of elem that are inputs to list
+	 * @param elem
+	 * @param list
+	 */
+	public static void getInputs (HtmlElement elem, List<HtmlElement> list) {
+		for (HtmlElement child :elem.getChildElements()) {
+			if (child instanceof HtmlInput) {
+				System.out.println("Discovered input: " + child.toString());
+				list.add(child);
+				getChildren(child, list);
+			}
+		}
 	}
 	/**
 	 * MAthod that provides a working username and passowrd to simulate logging into a syatem
