@@ -230,6 +230,7 @@ public class Fuzzer {
 		}*/
 	}
 	private static void postFormsAndParams(HtmlPage page)throws IOException, MalformedURLException{
+		String url = page.getUrl().toString();
 		List<HtmlForm> forms = page.getForms();
 		for(HtmlForm form : forms){
 			System.out.println("Discovered form: " + form.getNameAttribute());
@@ -246,12 +247,12 @@ public class Fuzzer {
 						String result = p.getWebResponse().getContentAsString();
 						for (String str : getSuccessStrings()) {
 							if (result.contains(str)) {
-								System.out.println("SUCCESS!  Fuzz vector found: [" + vector + "] on input [" + input + "] triggering success condition [" + str + "]");
+								System.out.println("SUCCESS!  Fuzz vector found: [" + vector + "] on input [" + input + "] triggering success condition [" + str + "] on page [" + url + "]");
 							}
 						}
 					} catch (FailingHttpStatusCodeException e1) {
 						// TODO Auto-generated catch block
-						System.out.println("SUCCESS!  Fuzz vector found: [" + vector + "] on input [" + input + "] triggering success condition [Failing HTTP status code]");
+						System.out.println("SUCCESS!  Fuzz vector found: [" + vector + "] on input [" + input + "] triggering success condition [Failing HTTP status code] on page [" + url + "]");
 					}
 					
 					try {
