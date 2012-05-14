@@ -9,8 +9,10 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
@@ -27,7 +29,8 @@ import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 
 public class Fuzzer {
 
-	private static String targetURL = "http://apps-staging.rit.edu/cast/eave/";
+	//private static String targetURL = "http://apps-staging.rit.edu/cast/eave/";
+	private static String targetURL = "http://localhost:8080/bodgeit/login.jsp";
 	private static String targetFileExtension = ".jsp";
 	private static final String testUsername = "Fuzzer";
 	private static final String testPassword = "Test";
@@ -45,13 +48,27 @@ public class Fuzzer {
 	private static List<String> sqliVectors = null;
 	private static List<String> commonPasswords = null;
 	
+	private static Queue<String> toBeFuzzed;
+	private static HashSet<String> foundLinks;
+	
 	public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
+		
 		WebClient webClient = new WebClient();
 		webClient.setJavaScriptEnabled(true);
 //		HtmlPage post_login = authenticate(webClient);
-		HtmlPage post_login = webClient.getPage("http://localhost:8080/bodgeit/login.jsp");
-		discoverLinks(webClient, null, post_login);
-		postFormsAndParams(post_login);
+		foundLinks.add(targetURL);
+		toBeFuzzed.add(targetURL);
+		while(!toBeFuzzed.isEmpty()){
+			HtmlPage fuzzPage = webClient.getPage(targetURL);
+			List<HtmlAnchor> found = discoverLinks(webClient, null, fuzzPage);
+			postFormsAndParams(fuzzPage);
+			for(HtmlAnchor anchor : found){
+				foundLinks.add(anchor.getHrefAttribute());
+				toBeFuzzed.add(anchor.getHrefAttribute());
+			}
+			toBeFuzzed.remove();
+		}
+		
 		//doFormPost(webClient);
 		webClient.closeAllWindows();
 	}
