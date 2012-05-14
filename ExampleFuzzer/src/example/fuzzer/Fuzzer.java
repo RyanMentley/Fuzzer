@@ -79,21 +79,21 @@ public class Fuzzer {
 	}
 	
 	private static List<String> getXssVectors() {
-		if (xssVectors != null) {
+		if (xssVectors == null) {
 			xssVectors = loadVectorsFromFile(XSS_VECTORS_FILENAME);
 		}
 		return xssVectors;
 	}
 	
 	private static List<String> getSqliVectors() {
-		if (sqliVectors != null) {
+		if (sqliVectors == null) {
 			sqliVectors = loadVectorsFromFile(SQLI_VECTORS_FILENAME);
 		}
 		return sqliVectors;
 	}
 	
 	private static List<String> getCommonPasswords() {
-		if (commonPasswords != null) {
+		if (commonPasswords == null) {
 			commonPasswords = loadVectorsFromFile(COMMON_PASSWORDS_FILENAME);
 		}
 		return commonPasswords;
