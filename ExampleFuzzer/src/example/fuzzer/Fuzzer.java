@@ -49,6 +49,7 @@ public class Fuzzer {
 //		HtmlPage post_login = authenticate(webClient);
 		HtmlPage post_login = webClient.getPage("http://localhost:8080/bodgeit/login.jsp");
 		discoverLinks(webClient, null, post_login);
+		postFormsAndParams(post_login);
 		//doFormPost(webClient);
 		webClient.closeAllWindows();
 	}
@@ -145,8 +146,8 @@ public class Fuzzer {
 			if (child instanceof HtmlInput) {
 				System.out.println("Discovered input: " + child.toString());
 				list.add((HtmlInput)child);
-				getInputs(child, list);
 			}
+			getInputs(child, list);
 		}
 	}
 	/**
@@ -176,8 +177,13 @@ public class Fuzzer {
 	private static void postFormsAndParams(HtmlPage page)throws IOException, MalformedURLException{
 		List<HtmlForm> forms = page.getForms();
 		for(HtmlForm form : forms){
-			System.out.println(form.getNameAttribute());
-			//List<HtmlInput> inputs = form.getElementsByTagName(""); //Unfinished
+			System.out.println("Discovered form: " + form.getNameAttribute());
+			List<HtmlInput> inputs = getInputs(form);
+			for (HtmlInput input : inputs) {
+				for (String vector : getSqliVectors()) {
+					input.setValueAttribute(vector);  // This doesn't do what we want, but it's sorta the general idea
+				}
+			}
 		}
 	}
 	/**
