@@ -43,10 +43,12 @@ public class Fuzzer {
 	private static final String XSS_VECTORS_FILENAME = "xssvectors.txt";
 	private static final String SQLI_VECTORS_FILENAME = "sqlivectors.txt";
 	private static final String COMMON_PASSWORDS_FILENAME = "passwords.txt";
+	private static final String SUCCESS_STRINGS_FILENAME = "success.txt";
 	
 	private static List<String> xssVectors = null;
 	private static List<String> sqliVectors = null;
 	private static List<String> commonPasswords = null;
+	private static List<String> successStrings = null;
 	
 	private static Queue<String> toBeFuzzed;
 	private static HashSet<String> foundLinks;
@@ -118,6 +120,13 @@ public class Fuzzer {
 			commonPasswords = loadVectorsFromFile(COMMON_PASSWORDS_FILENAME);
 		}
 		return commonPasswords;
+	}
+	
+	private static List<String> getSuccessStrings() {
+		if (successStrings == null) {
+			successStrings = loadVectorsFromFile(SUCCESS_STRINGS_FILENAME);
+		}
+		return successStrings;
 	}
 	
 	/**
@@ -215,8 +224,10 @@ public class Fuzzer {
 					input.setValueAttribute(vector);  // This doesn't do what we want, but it's sorta the general idea
 					Page p = submit.click();
 					String result = p.getWebResponse().getContentAsString();
-					if (result.contains("You have logged in successfully")) {
-						System.out.println("WINNING");
+					for (String str : getSuccessStrings()) {
+						if (result.contains(str)) {
+							System.out.println("SUCCESS!  Fuzz vector found: [" + vector + "] on input [" + input + "] triggering success condition [" + str + "]");
+						}
 					}
 					try {
 						Thread.sleep(wait);
