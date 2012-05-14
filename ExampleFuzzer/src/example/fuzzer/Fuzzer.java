@@ -46,7 +46,8 @@ public class Fuzzer {
 	public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		WebClient webClient = new WebClient();
 		webClient.setJavaScriptEnabled(true);
-		HtmlPage post_login = authenticate(webClient);
+//		HtmlPage post_login = authenticate(webClient);
+		HtmlPage post_login = webClient.getPage("http://localhost:8080/bodgeit/login.jsp");
 		discoverLinks(webClient, null, post_login);
 		//doFormPost(webClient);
 		webClient.closeAllWindows();
@@ -100,6 +101,17 @@ public class Fuzzer {
 	}
 	
 	/**
+	 * Returns a list of the children of the given element (recursively)
+	 * @param elem
+	 * @return
+	 */
+	public static List<HtmlElement> getChildren (HtmlElement elem) {
+		List<HtmlElement> list = new ArrayList<HtmlElement>();
+		getChildren(elem, list);
+		return list;
+	}
+	
+	/**
 	 * Adds all the children of elem to list
 	 * @param elem
 	 * @param list
@@ -113,16 +125,27 @@ public class Fuzzer {
 	}
 	
 	/**
+	 * Returns a list of the children of the given element (recursively) that are inputs
+	 * @param elem
+	 * @return
+	 */
+	public static List<HtmlInput> getInputs (HtmlElement elem) {
+		List<HtmlInput> list = new ArrayList<HtmlInput>();
+		getInputs(elem, list);
+		return list;
+	}
+	
+	/**
 	 * Adds all the children of elem that are inputs to list
 	 * @param elem
 	 * @param list
 	 */
-	public static void getInputs (HtmlElement elem, List<HtmlElement> list) {
+	public static void getInputs (HtmlElement elem, List<HtmlInput> list) {
 		for (HtmlElement child :elem.getChildElements()) {
 			if (child instanceof HtmlInput) {
 				System.out.println("Discovered input: " + child.toString());
-				list.add(child);
-				getChildren(child, list);
+				list.add((HtmlInput)child);
+				getInputs(child, list);
 			}
 		}
 	}
