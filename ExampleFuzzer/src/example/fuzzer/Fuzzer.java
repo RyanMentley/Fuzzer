@@ -37,9 +37,11 @@ public class Fuzzer {
 	
 	private static final String XSS_VECTORS_FILENAME = "xssvectors.txt";
 	private static final String SQLI_VECTORS_FILENAME = "sqlivectors.txt";
+	private static final String COMMON_PASSWORDS_FILENAME = "passwords.txt";
 	
 	private static List<String> xssVectors = null;
 	private static List<String> sqliVectors = null;
+	private static List<String> commonPasswords = null;
 	
 	public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		WebClient webClient = new WebClient();
@@ -88,6 +90,13 @@ public class Fuzzer {
 			sqliVectors = loadVectorsFromFile(SQLI_VECTORS_FILENAME);
 		}
 		return sqliVectors;
+	}
+	
+	private static List<String> getCommonPasswords() {
+		if (commonPasswords != null) {
+			commonPasswords = loadVectorsFromFile(COMMON_PASSWORDS_FILENAME);
+		}
+		return commonPasswords;
 	}
 	
 	/**
