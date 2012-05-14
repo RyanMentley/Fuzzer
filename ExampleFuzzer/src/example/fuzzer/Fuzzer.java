@@ -7,9 +7,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
@@ -153,6 +156,15 @@ public class Fuzzer {
 			input.setValueAttribute("2");
 			HtmlSubmitInput submit = (HtmlSubmitInput) form.getFirstByXPath("//input[@id='submit']");
 			System.out.println(submit.<HtmlPage> click().getWebResponse().getContentAsString());
+		}
+	}
+	
+	private static void checkAlerts(WebClient webClient, String URL) throws Exception {
+		List<String> collectedAlerts = new ArrayList<String>();
+		webClient.setAlertHandler(new CollectingAlertHandler(collectedAlerts));
+		HtmlPage page = webClient.getPage(URL);
+		for (String alert : collectedAlerts) {
+			System.out.println("Alert Got: " + alert + ", Alert Expected: XSS");
 		}
 	}
 }
