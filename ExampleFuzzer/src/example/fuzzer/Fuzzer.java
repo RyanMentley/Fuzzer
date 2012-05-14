@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
@@ -150,6 +151,15 @@ public class Fuzzer {
 			getInputs(child, list);
 		}
 	}
+	
+	public static HtmlSubmitInput getSubmit (List<HtmlInput> inputs) {
+		for (HtmlInput input : inputs) {
+			if (input instanceof HtmlSubmitInput) {
+				return (HtmlSubmitInput)input;
+			}
+		}
+		return null;
+	}
 	/**
 	 * MAthod that provides a working username and passowrd to simulate logging into a syatem
 	 */
@@ -179,11 +189,21 @@ public class Fuzzer {
 		for(HtmlForm form : forms){
 			System.out.println("Discovered form: " + form.getNameAttribute());
 			List<HtmlInput> inputs = getInputs(form);
+			HtmlSubmitInput submit = getSubmit(inputs);
 			for (HtmlInput input : inputs) {
+				String originalValue = input.getValueAttribute();
 				for (String vector : getSqliVectors()) {
+					System.out.println("Testing vector [" + vector + "] on input [" + input + "]");
 					input.setValueAttribute(vector);  // This doesn't do what we want, but it's sorta the general idea
+					Page p = submit.click();
+					String result = p.getWebResponse().getContentAsString();
+					if (result.contains("You have logged in successfully")) {
+						System.out.println("WINNING");
+					}
 				}
+				input.setValueAttribute(originalValue);
 			}
+			
 		}
 	}
 	/**
@@ -194,7 +214,7 @@ public class Fuzzer {
 	 */
 	private static List<HtmlAnchor> discoverLinks(WebClient webClient, String URL, HtmlPage postLogin) throws IOException, MalformedURLException {
 		HtmlPage page = null;
-		if(URL != null){
+		if (URL != null){
 			page = webClient.getPage(URL);
 		}else{
 			page= postLogin;
