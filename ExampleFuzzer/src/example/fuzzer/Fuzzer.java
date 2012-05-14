@@ -32,7 +32,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 
 public class Fuzzer {
 
-	//private static String targetURL = "http://apps-staging.rit.edu/cast/eave/";
+//	private static String targetURL = "http://apps-staging.rit.edu/cast/eave/";
 	private static String targetURL = "http://localhost:8080/bodgeit/";
 	private static String targetFileExtension = ".jsp";
 	private static final String testUsername = "Fuzzer";
@@ -41,6 +41,7 @@ public class Fuzzer {
 	private static final boolean pageGuessing = true;
 	private static final boolean completeness = false;  //Random = false, Full = True;
 	private static final boolean passwordguessing = false;
+	private static final boolean verbose = false;
 	private static final int wait = 100;
 	
 	private static final String XSS_VECTORS_FILENAME = "xssvectors.txt";
@@ -66,14 +67,17 @@ public class Fuzzer {
 			String target = toBeFuzzed.remove();
 			System.out.println("Fuzzing page: " + target);
 			HtmlPage fuzzPage = webClient.getPage(target);
-			List<HtmlAnchor> found = discoverLinks(webClient, null, fuzzPage);
+			
 			postFormsAndParams(fuzzPage);
-			for(HtmlAnchor anchor : found){
-				String url = anchor.getHrefAttribute();
-				url = concatUrl(target, url);
-				if (url != null && !foundLinks.contains(url)) {
-					foundLinks.add(url);
-					toBeFuzzed.add(url);
+			if (pageDiscovery) {
+				List<HtmlAnchor> found = discoverLinks(webClient, null, fuzzPage);
+				for(HtmlAnchor anchor : found){
+					String url = anchor.getHrefAttribute();
+					url = concatUrl(target, url);
+					if (url != null && !foundLinks.contains(url)) {
+						foundLinks.add(url);
+						toBeFuzzed.add(url);
+					}
 				}
 			}
 		}
@@ -239,7 +243,9 @@ public class Fuzzer {
 			for (HtmlInput input : inputs) {
 				String originalValue = input.getValueAttribute();
 				for (String vector : getSqliVectors()) {
-					//System.out.println("Testing vector [" + vector + "] on input [" + input + "]");
+					if (verbose) {
+						System.out.println("Testing vector [" + vector + "] on input [" + input + "]");
+					}
 					input.setValueAttribute(vector);
 					Page p;
 					try {
