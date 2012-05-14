@@ -206,8 +206,10 @@ public class Fuzzer {
 					input.setValueAttribute(vector);  // This doesn't do what we want, but it's sorta the general idea
 					Page p = submit.click();
 					String result = p.getWebResponse().getContentAsString();
-					if (result.contains("You have logged in successfully")) {
-						System.out.println("WINNING");
+					for (String str : getSuccessStrings()) {
+						if (result.contains(str)) {
+							System.out.println("SUCCESS!  Fuzz vector found: [" + vector + "] on input [" + input + "] triggering success condition [" + str + "]");
+						}
 					}
 				}
 				input.setValueAttribute(originalValue);
