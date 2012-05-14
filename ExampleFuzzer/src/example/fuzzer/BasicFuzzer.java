@@ -2,11 +2,13 @@ package example.fuzzer;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -17,9 +19,23 @@ public class BasicFuzzer {
 	public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		WebClient webClient = new WebClient();
 		webClient.setJavaScriptEnabled(true);
-		discoverLinks(webClient, "http://localhost:8080/bodgeit");
-		doFormPost(webClient);
+//		discoverLinks(webClient, "http://localhost:8080/bodgeit");
+//		doFormPost(webClient);
+		HtmlPage page = webClient.getPage("http://localhost:8080/bodgeit/login.jsp");
+		List<HtmlForm> forms = page.getForms();
+		for (HtmlForm form : forms) {
+			List<HtmlElement> children = new ArrayList<HtmlElement>();
+			addChildren(form, children);
+		}
 		webClient.closeAllWindows();
+	}
+	
+	public static void addChildren (HtmlElement elem, List<HtmlElement> list) {
+		for (HtmlElement child :elem.getChildElements()) {
+			System.out.println(child.toString());
+			list.add(child);
+			addChildren(child, list);
+		}
 	}
 
 	/**
