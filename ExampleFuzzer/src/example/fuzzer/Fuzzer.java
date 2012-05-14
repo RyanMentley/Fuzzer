@@ -35,6 +35,7 @@ public class Fuzzer {
 	private static final boolean pageGuessing = true;
 	private static final boolean completeness = false;  //Random = false, Full = True;
 	private static final boolean passwordguessing = false;
+	private static final int wait = 100;
 	
 	private static final String XSS_VECTORS_FILENAME = "xssvectors.txt";
 	private static final String SQLI_VECTORS_FILENAME = "sqlivectors.txt";
@@ -210,6 +211,12 @@ public class Fuzzer {
 						if (result.contains(str)) {
 							System.out.println("SUCCESS!  Fuzz vector found: [" + vector + "] on input [" + input + "] triggering success condition [" + str + "]");
 						}
+					}
+					try {
+						Thread.sleep(wait);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
 				input.setValueAttribute(originalValue);
