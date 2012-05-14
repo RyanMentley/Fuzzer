@@ -7,6 +7,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -30,7 +33,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 public class Fuzzer {
 
 	//private static String targetURL = "http://apps-staging.rit.edu/cast/eave/";
-	private static String targetURL = "http://localhost:8080/bodgeit/login.jsp";
+	private static String targetURL = "http://localhost:8080/bodgeit/";
 	private static String targetFileExtension = ".jsp";
 	private static final String testUsername = "Fuzzer";
 	private static final String testPassword = "Test";
@@ -50,25 +53,29 @@ public class Fuzzer {
 	private static List<String> commonPasswords = null;
 	private static List<String> successStrings = null;
 	
-	private static Queue<String> toBeFuzzed;
-	private static HashSet<String> foundLinks;
+	private static Queue<String> toBeFuzzed = new LinkedList<String>();
+	private static HashSet<String> foundLinks = new HashSet<String>();
 	
 	public static void main(String[] args) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
-		
 		WebClient webClient = new WebClient();
 		webClient.setJavaScriptEnabled(true);
 //		HtmlPage post_login = authenticate(webClient);
 		foundLinks.add(targetURL);
 		toBeFuzzed.add(targetURL);
 		while(!toBeFuzzed.isEmpty()){
-			HtmlPage fuzzPage = webClient.getPage(targetURL);
+			String target = toBeFuzzed.remove();
+			System.out.println("Fuzzing page: " + target);
+			HtmlPage fuzzPage = webClient.getPage(target);
 			List<HtmlAnchor> found = discoverLinks(webClient, null, fuzzPage);
 			postFormsAndParams(fuzzPage);
 			for(HtmlAnchor anchor : found){
-				foundLinks.add(anchor.getHrefAttribute());
-				toBeFuzzed.add(anchor.getHrefAttribute());
+				String url = anchor.getHrefAttribute();
+				url = concatUrl(target, url);
+				if (url != null && !foundLinks.contains(url)) {
+					foundLinks.add(url);
+					toBeFuzzed.add(url);
+				}
 			}
-			toBeFuzzed.remove();
 		}
 		
 		//doFormPost(webClient);
@@ -127,6 +134,17 @@ public class Fuzzer {
 			successStrings = loadVectorsFromFile(SUCCESS_STRINGS_FILENAME);
 		}
 		return successStrings;
+	}
+	
+	private static String concatUrl (String url1, String url2) {
+		URL _url1, _url2;
+		try {
+			_url1 = new URL(url1);
+			_url2 = new URL(_url1, url2);
+		} catch (MalformedURLException e) {
+			return null;
+		}
+		return _url2.toString();
 	}
 	
 	/**
@@ -220,15 +238,22 @@ public class Fuzzer {
 			for (HtmlInput input : inputs) {
 				String originalValue = input.getValueAttribute();
 				for (String vector : getSqliVectors()) {
-					System.out.println("Testing vector [" + vector + "] on input [" + input + "]");
-					input.setValueAttribute(vector);  // This doesn't do what we want, but it's sorta the general idea
-					Page p = submit.click();
-					String result = p.getWebResponse().getContentAsString();
-					for (String str : getSuccessStrings()) {
-						if (result.contains(str)) {
-							System.out.println("SUCCESS!  Fuzz vector found: [" + vector + "] on input [" + input + "] triggering success condition [" + str + "]");
+					//System.out.println("Testing vector [" + vector + "] on input [" + input + "]");
+					input.setValueAttribute(vector);
+					Page p;
+					try {
+						p = submit.click();
+						String result = p.getWebResponse().getContentAsString();
+						for (String str : getSuccessStrings()) {
+							if (result.contains(str)) {
+								System.out.println("SUCCESS!  Fuzz vector found: [" + vector + "] on input [" + input + "] triggering success condition [" + str + "]");
+							}
 						}
+					} catch (FailingHttpStatusCodeException e1) {
+						// TODO Auto-generated catch block
+						System.out.println("SUCCESS!  Fuzz vector found: [" + vector + "] on input [" + input + "] triggering success condition [Failing HTTP status code]");
 					}
+					
 					try {
 						Thread.sleep(wait);
 					} catch (InterruptedException e) {
